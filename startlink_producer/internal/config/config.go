@@ -3,14 +3,12 @@ package config
 import (
 	"fmt"
 	"os"
-	"strings"
 )
 
 type Config struct {
-	AppName       string   `env:"APP_NAME"`
-	HttpPort      string   `env:"HTTP_PORT"`
-	DbUrl         string   `env:"DB_URL"`
-	KafkaBrokers  []string `env:"KAFKA_BROKERS"`
+	AppName  string `env:"APP_NAME"`
+	HttpPort string `env:"HTTP_PORT"`
+	DbUrl    string `env:"DATABASE_URL"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -26,15 +24,10 @@ func LoadConfig() (*Config, error) {
 	if httpPort == "" {
 		httpPort = "8080"
 	}
-	kafkaBrokers := os.Getenv("KAFKA_BROKERS")
-	if kafkaBrokers == "" {
-		kafkaBrokers = "localhost:9092"
-	}
 
 	return &Config{
-		DbUrl:        dbUrl,
-		AppName:      appName,
-		HttpPort:     httpPort,
-		KafkaBrokers: strings.Split(kafkaBrokers, ","),
+		DbUrl:    dbUrl,
+		AppName:  appName,
+		HttpPort: httpPort,
 	}, nil
 }

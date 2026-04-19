@@ -57,6 +57,7 @@ services:
   postgres:
     image: postgres:${POSTGRES_VERSION}
     container_name: postgres
+    command: ["postgres", "-c", "wal_level=logical", "-c", "max_replication_slots=5", "-c", "max_wal_senders=5"]
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -73,6 +74,42 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
+
+  kafka-connect:
+    image: quay.io/debezium/connect:3.0
+    container_name: kafka-connect
+    depends_on:
+      redpanda:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${CONNECT_PORT:-8083}:8083"
+    environment:
+      BOOTSTRAP_SERVERS: redpanda:9092
+      GROUP_ID: debezium-connect-group
+      CONFIG_STORAGE_TOPIC: debezium_connect_configs
+      OFFSET_STORAGE_TOPIC: debezium_connect_offsets
+      STATUS_STORAGE_TOPIC: debezium_connect_statuses
+      KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8083/connectors || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 45s
+
+  debezium-init:
+    image: curlimages/curl:latest
+    container_name: debezium-init
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    volumes:
+      - ./debezium/connector.json:/connector.json:ro
+    entrypoint: ["/bin/sh", "-c", "curl -sf -X POST http://kafka-connect:8083/connectors -H 'Content-Type: application/json' -d @/connector.json && echo 'Connector registered'"]
+    restart: "no"
 
 volumes:
   redpanda_data:
