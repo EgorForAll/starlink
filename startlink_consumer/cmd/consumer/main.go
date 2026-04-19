@@ -35,9 +35,9 @@ func main() {
 
 	// инициализация зависимостей
 	di := container.NewDiContainer(dbConn, configData)
-	di.InitDependencies(configData)
+	di.InitDependencies()
 
-	if err := app.InitApp(di); err != nil {
+	if err := app.InitApp(di, configData); err != nil {
 		log.Fatal(err)
 	}
 }
