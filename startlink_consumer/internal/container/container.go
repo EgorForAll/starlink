@@ -6,16 +6,15 @@ import (
 	"starlink_consumer/domain/users"
 	"starlink_consumer/internal/config"
 	"starlink_consumer/internal/infra/db"
-	infrakafka "starlink_consumer/internal/infra/kafka"
 
 	"github.com/rs/zerolog"
 )
 
 type DiContainer struct {
-	DbConn        db.DbConn
-	Logger        zerolog.Logger
-	TxManager     *db.TxManager
-	KafkaConsumer *infrakafka.Consumer
+	DbConn      db.DbConn
+	Logger      zerolog.Logger
+	TxManager   *db.TxManager
+	UserUsecase users.UserUsecase
 }
 
 func NewDiContainer(dbConn db.DbConn, cfg *config.Config) *DiContainer {
@@ -26,7 +25,7 @@ func NewDiContainer(dbConn db.DbConn, cfg *config.Config) *DiContainer {
 	}
 }
 
-func (c *DiContainer) InitDependencies(cfg *config.Config) {
+func (c *DiContainer) InitDependencies() {
 	if c.DbConn == nil {
 		panic("db is not initialized")
 	}
@@ -34,13 +33,5 @@ func (c *DiContainer) InitDependencies(cfg *config.Config) {
 	c.TxManager = db.NewTxManager(c.DbConn)
 	pgUserRepo := users.NewUserRepo(c.DbConn)
 	userService := users.NewUserService()
-	userUsecase := users.NewUsecase(c.TxManager, userService, pgUserRepo)
-
-	c.KafkaConsumer = infrakafka.NewConsumer(
-		cfg.KafkaBrokers,
-		cfg.KafkaTopic,
-		cfg.KafkaGroupID,
-		userUsecase,
-		c.Logger,
-	)
+	c.UserUsecase = users.NewUsecase(c.TxManager, userService, pgUserRepo)
 }

@@ -2,33 +2,31 @@ package app
 
 import (
 	"context"
-	"os"
 	"os/signal"
 	"syscall"
 
+	"starlink_consumer/internal/config"
 	"starlink_consumer/internal/container"
 )
 
-func InitApp(di *container.DiContainer) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+func InitApp(di *container.DiContainer, cfg *config.Config) error {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	consumer := NewConsumer(cfg.KafkaBrokers, cfg.KafkaTopic, cfg.KafkaGroupID, di.UserUsecase, di.Logger)
 
 	errCh := make(chan error, 1)
 
 	go func() {
 		di.Logger.Info().Msg("starting kafka consumer")
-		if err := di.KafkaConsumer.Run(ctx); err != nil {
+		if err := consumer.Run(ctx); err != nil {
 			errCh <- err
 		}
 	}()
 
 	select {
-	case <-quit:
+	case <-ctx.Done():
 		di.Logger.Info().Msg("shutting down consumer")
-		cancel()
 	case err := <-errCh:
 		di.Logger.Error().Err(err).Msg("consumer error")
 		return err

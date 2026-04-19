@@ -25,7 +25,9 @@ func (m *TxManager) RunInTx(ctx context.Context, fn func(ctx context.Context) er
 	ctx = context.WithValue(ctx, txKey{}, tx)
 
 	if err := fn(ctx); err != nil {
-		tx.Rollback()
+		if rbErr := tx.Rollback(); rbErr != nil {
+			return fmt.Errorf("rollback failed: %w (original error: %w)", rbErr, err)
+		}
 		return err
 	}
 	return tx.Commit()
