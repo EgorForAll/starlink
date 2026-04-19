@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 
@@ -17,16 +16,13 @@ func NewUserHandler(usecase users.UserUsecase) *UserHandler {
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(r.Context())
-	defer cancel()
-
 	var req users.User
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.usecase.Create(ctx, req)
+	user, err := h.usecase.Create(r.Context(), req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
