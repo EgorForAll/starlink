@@ -32,8 +32,8 @@ func (r *PgUserRepo) runner(ctx context.Context) db.TxRunner {
 func (r *PgUserRepo) Save(ctx context.Context, user *ReceivedUser) error {
 	query, args, err := r.sq.
 		Insert("received_users").
-		Columns("source_id", "first_name", "last_name", "email", "processed_at").
-		Values(user.SourceID, user.FirstName, user.LastName, user.Email, time.Now()).
+		Columns("user_id", "first_name", "last_name", "email", "processed_at").
+		Values(user.UserID, user.FirstName, user.LastName, user.Email, time.Now()).
 		Suffix("RETURNING id, received_at").
 		ToSql()
 	if err != nil {

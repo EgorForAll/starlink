@@ -2,6 +2,7 @@ package users
 
 import "time"
 
+//TODO: сделать в internal
 // User — сообщение, которое приходит из топика user.created (от producer)
 type User struct {
 	ID        int       `json:"id"`
@@ -14,7 +15,7 @@ type User struct {
 // ReceivedUser — запись в consumer_db после обработки
 type ReceivedUser struct {
 	ID          int
-	SourceID    int
+	UserID      int
 	FirstName   string
 	LastName    string
 	Email       string

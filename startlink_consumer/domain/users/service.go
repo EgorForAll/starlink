@@ -12,7 +12,7 @@ func NewUserService() *UserService {
 // переводит имя и фамилию в верхний регистр, нормализует email
 func (s *UserService) Process(user User) ReceivedUser {
 	return ReceivedUser{
-		SourceID:  user.ID,
+		UserID:    user.ID,
 		FirstName: strings.ToUpper(user.FirstName),
 		LastName:  strings.ToUpper(user.LastName),
 		Email:     strings.ToLower(user.Email),
