@@ -9,6 +9,8 @@ import (
 	"github.com/Masterminds/squirrel"
 )
 
+const dbQueryTimeout = 2 * time.Second
+
 type PgUserRepo struct {
 	dbConn db.DbConn
 }
@@ -24,7 +26,7 @@ func (r *PgUserRepo) runner(ctx context.Context) db.TxRunner {
 }
 
 func (r *PgUserRepo) FindByEmail(parentCtx context.Context, email string) (*User, error) {
-	ctx, cancel := context.WithTimeout(parentCtx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(parentCtx, dbQueryTimeout)
 	defer cancel()
 
 	qb := squirrel.
@@ -49,7 +51,7 @@ func (r *PgUserRepo) FindByEmail(parentCtx context.Context, email string) (*User
 }
 
 func (r *PgUserRepo) Create(parentCtx context.Context, user *User) error {
-	ctx, cancel := context.WithTimeout(parentCtx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(parentCtx, dbQueryTimeout)
 	defer cancel()
 
 	qb := squirrel.
