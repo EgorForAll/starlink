@@ -27,8 +27,9 @@ func InitApp(di *container.DiContainer, cfg *config.Config) error {
 	dlqTopic := cfg.KafkaTopic + ".dlq"
 
 	writer := &kafka.Writer{
-		Addr:     kafka.TCP(cfg.KafkaBrokers...),
-		Balancer: &kafka.LeastBytes{},
+		Addr:         kafka.TCP(cfg.KafkaBrokers...),
+		Balancer:     &kafka.LeastBytes{},
+		RequiredAcks: kafka.RequireAll,
 	}
 	defer writer.Close()
 
