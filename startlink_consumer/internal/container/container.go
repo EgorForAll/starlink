@@ -13,7 +13,6 @@ import (
 type DiContainer struct {
 	DbConn      db.DbConn
 	Logger      zerolog.Logger
-	TxManager   *db.TxManager
 	UserUsecase users.UserUsecase
 }
 
@@ -30,8 +29,7 @@ func (c *DiContainer) InitDependencies() {
 		panic("db is not initialized")
 	}
 
-	c.TxManager = db.NewTxManager(c.DbConn)
 	pgUserRepo := users.NewUserRepo(c.DbConn)
 	userService := users.NewUserService()
-	c.UserUsecase = users.NewUsecase(c.TxManager, userService, pgUserRepo)
+	c.UserUsecase = users.NewUsecase(userService, pgUserRepo)
 }
